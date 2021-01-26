@@ -1,23 +1,28 @@
 provider "google" {
-  project     = "my-project-id"
-  region      = "us-central1"
+  project     = "cayops-testes"
+  region      = "southamerica-east1"
+  zone        = "southamerica-east1-a"
 }
 
-resource "google_storage_bucket" "static-site" {
-  name          = "image-store.com"
-  location      = "EU"
-  force_destroy = true
+resource "google_compute_instance" "vm_instance" {
+  name         = "terraform-instance"
+  machine_type = "f1-micro"
 
-  uniform_bucket_level_access = true
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+    }
+  }
 
-  website {
-    main_page_suffix = "index.html"
-    not_found_page   = "404.html"
+  network_interface {
+    # A default network is created for all GCP projects
+    network = google_compute_network.vpc_network.self_link
+    access_config {
+    }
   }
-  cors {
-    origin          = ["http://image-store.com"]
-    method          = ["GET", "HEAD", "PUT", "POST", "DELETE"]
-    response_header = ["*"]
-    max_age_seconds = 3600
-  }
+}
+
+resource "google_compute_network" "vpc_network" {
+  name                    = "terraform-network"
+  auto_create_subnetworks = "true"
 }
